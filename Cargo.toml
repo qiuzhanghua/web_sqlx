@@ -1,6 +1,6 @@
 [package]
 name = "web_sqlx"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Daniel <qiuzhanghua@icloud.com>"]
 edition = "2018"
 

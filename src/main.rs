@@ -7,18 +7,16 @@ extern crate serde_json;
 #[macro_use]
 extern crate actix_web;
 
-use actix_web::{middleware, web, App, HttpServer, HttpRequest};
+use actix_web::{web, App, HttpRequest, HttpServer, Responder};
 use dotenv::dotenv;
-use std::env;
 use sqlx::prelude::*;
-use sqlx::{MySqlPool, Pool, MySqlConnection, PgPool, PgConnection};
-
+use sqlx::{MySqlPool, PgPool, Pool};
+use std::env;
 
 #[cfg(feature = "with-mysql")]
 type TdfPool = MySqlPool;
 #[cfg(feature = "with-postgres")]
 type TdfPool = PgPool;
-
 
 lazy_static! {
     pub static ref DATABASE_URL: String = {
@@ -32,37 +30,30 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
 
-    //   let pool: PgPool = Pool::new(&DATABASE_URL).await?;
     let pool: TdfPool = Pool::new(&DATABASE_URL).await.unwrap();
     let recs = sqlx::query!(r#"SELECT * from people"#)
         .fetch_all(&mut &pool)
-        .await.unwrap();
+        .await
+        .unwrap();
     for rec in recs {
         println!("{:?}", rec);
     }
 
     HttpServer::new(move || {
         App::new()
-            // .wrap(middleware::Logger::default())
             .data(pool.clone())
             .service(web::resource("/").route(web::get().to(index)))
-            // .service(sec::handlers::login)
-            // .service(sec::handlers::logout)
-            // .service(sec::handlers::me)
     })
-        .bind("0.0.0.0:8080")?
-        .run()
-        .await
-
+    .bind("0.0.0.0:8080")?
+    .run()
+    .await
 }
 
-pub async fn index(_pool: web::Data<TdfPool>) -> &'static str {
-    use sqlx_core::cursor::Cursor;
-
+pub async fn index(_request: HttpRequest) -> impl Responder {
     let pool: TdfPool = Pool::new(&DATABASE_URL).await.unwrap();
-    let mut cursor = sqlx::query(r#"SELECT * from people"#)
-        .fetch(&pool);
+    let mut cursor = sqlx::query(r#"SELECT * from people"#).fetch(&pool);
     let row = cursor.next().await.unwrap().unwrap();
-    println!("{:?}", row.get::<&str, &str>("person_id"));
-    "Hello world!"
+    //    println!("{:?}", row.get::<&str, &str>("person_id"));
+    // "Hello world!"
+    row.get::<&str, &str>("person_id").to_string()
 }
