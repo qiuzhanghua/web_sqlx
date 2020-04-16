@@ -30,7 +30,12 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
 
-    let pool: TdfPool = Pool::new(&DATABASE_URL).await.unwrap();
+    let pool: TdfPool = Pool::builder()
+        .max_size(100)
+        .min_size(20)
+        .build(&DATABASE_URL)
+        .await
+        .unwrap();
     let recs = sqlx::query!(r#"SELECT * from people"#)
         .fetch_all(&mut &pool)
         .await
@@ -49,11 +54,8 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-pub async fn index(_request: HttpRequest) -> impl Responder {
-    let pool: TdfPool = Pool::new(&DATABASE_URL).await.unwrap();
-    let mut cursor = sqlx::query(r#"SELECT * from people"#).fetch(&pool);
+pub async fn index(_request: HttpRequest, pool: web::Data<TdfPool>) -> impl Responder {
+    let mut cursor = sqlx::query(r#"SELECT * from people"#).fetch(pool.get_ref());
     let row = cursor.next().await.unwrap().unwrap();
-    //    println!("{:?}", row.get::<&str, &str>("person_id"));
-    // "Hello world!"
     row.get::<&str, &str>("person_id").to_string()
 }
