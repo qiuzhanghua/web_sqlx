@@ -31,18 +31,18 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let pool: TdfPool = Pool::builder()
-        .max_size(100)
-        .min_size(20)
+        .max_size(40)
+        .min_size(40)
         .build(&DATABASE_URL)
         .await
         .unwrap();
-    let recs = sqlx::query!(r#"SELECT * from people"#)
-        .fetch_all(&mut &pool)
-        .await
-        .unwrap();
-    for rec in recs {
-        println!("{:?}", rec);
-    }
+    // let recs = sqlx::query!(r#"SELECT * from people"#)
+    //     .fetch_all(&mut &pool)
+    //     .await
+    //     .unwrap();
+    // for rec in recs {
+    //     println!("{:?}", rec);
+    // }
 
     HttpServer::new(move || {
         App::new()
