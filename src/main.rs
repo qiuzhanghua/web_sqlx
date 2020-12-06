@@ -10,11 +10,22 @@ extern crate actix_web;
 use actix_web::{web, App, HttpRequest, HttpServer, Responder};
 use dotenv::dotenv;
 use sqlx::prelude::*;
-use sqlx::{MySqlPool, PgPool, Pool};
+use sqlx::{MySqlPool, PgPool, MySql, MssqlPool};
 use std::env;
+use tokio::stream::StreamExt;
+use sqlx::mysql::MySqlPoolOptions;
+use sqlx::postgres::PgPoolOptions;
 
 #[cfg(feature = "with-mysql")]
+type TdfPoolOptions = MySqlPoolOptions;
+#[cfg(feature = "with-mysql")]
 type TdfPool = MySqlPool;
+#[cfg(feature = "with-mssql")]
+type TdfPoolOptions = MssqlPoolOptions;
+#[cfg(feature = "with-mssql")]
+type TdfPool = MssqlPool;
+#[cfg(feature = "with-postgres")]
+type TdfPoolOptions = PgPoolOptions;
 #[cfg(feature = "with-postgres")]
 type TdfPool = PgPool;
 
@@ -29,21 +40,11 @@ lazy_static! {
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
-
-    let pool: TdfPool = Pool::builder()
-        .max_size(40)
-        .min_size(40)
-        .build(&DATABASE_URL)
-        .await
-        .unwrap();
-    // let recs = sqlx::query!(r#"SELECT * from people"#)
-    //     .fetch_all(&mut &pool)
-    //     .await
-    //     .unwrap();
-    // for rec in recs {
-    //     println!("{:?}", rec);
-    // }
-
+    let pool = TdfPoolOptions::new()
+        .max_connections(40)
+        .min_connections(40)
+        .connect(&DATABASE_URL).await.unwrap();
+    pool.size();
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
