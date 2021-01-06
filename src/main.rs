@@ -10,11 +10,11 @@ extern crate actix_web;
 use actix_web::{web, App, HttpRequest, HttpServer, Responder};
 use dotenv::dotenv;
 use sqlx::prelude::*;
-use sqlx::{MySqlPool, PgPool, MySql, MssqlPool};
+use sqlx::{MySqlPool, PgPool, MssqlPool};
 use std::env;
-use tokio::stream::StreamExt;
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::postgres::PgPoolOptions;
+use futures::StreamExt;
 
 #[cfg(feature = "with-mysql")]
 type TdfPoolOptions = MySqlPoolOptions;

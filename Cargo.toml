@@ -1,6 +1,6 @@
 [package]
 name = "web_sqlx"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Daniel <qiuzhanghua@icloud.com>"]
 edition = "2018"
 
@@ -14,21 +14,20 @@ serde_json = "1.0"
 json = "0.12"
 lazy_static = "1.4"
 chrono = "0.4"
-tokio = {version = "0.2", features = ["full"] }
-actix-web = "2.0" # 2.0
-actix-rt = "1.0" # 2.0
-actix-service = "1.0"
+tokio = {version = "1", features = ["full"] }
+actix-web = "3"
+actix-rt = "1"
+actix-service = "1"
 futures = "0.3"
 uuid = { version = "0.8", features = ["serde", "v4", "v5"] }
-async-native-tls = { version = "0.3", default-features = false, features = [ "runtime-tokio" ] }
-mysql = {version = "18", optional = true}
-postgres = {version = "0.17", optional = true}
+mysql = {version = "20", optional = true}
+postgres = {version = "0.19", optional = true}
 postgres-shared = {version = "0.4", optional = true}
-#tiberius = {version = "0.4", optional = true, features = ["tls"]}
+
 [dependencies.sqlx]
-version = "0.4.1"
+version = "0.4"
 default-features = false
-features = [ "runtime-tokio-rustls", "macros", "postgres", "mysql", "mssql", "sqlite",  "uuid", "chrono", "bigdecimal", "json", "ipnetwork", "tls"]
+features = [ "runtime-actix-native-tls", "macros", "postgres", "mysql", "mssql", "sqlite",  "uuid", "chrono", "bigdecimal", "json", "ipnetwork", "tls"]
 
 
 [features]
