@@ -9,12 +9,12 @@ extern crate actix_web;
 
 use actix_web::{web, App, HttpRequest, HttpServer, Responder};
 use dotenv::dotenv;
-use sqlx::prelude::*;
-use sqlx::{MySqlPool, PgPool, MssqlPool};
-use std::env;
+use futures::StreamExt;
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::postgres::PgPoolOptions;
-use futures::StreamExt;
+use sqlx::prelude::*;
+use sqlx::{MssqlPool, MySqlPool, PgPool};
+use std::env;
 
 #[cfg(feature = "with-mysql")]
 type TdfPoolOptions = MySqlPoolOptions;
@@ -43,7 +43,9 @@ async fn main() -> std::io::Result<()> {
     let pool = TdfPoolOptions::new()
         .max_connections(40)
         .min_connections(40)
-        .connect(&DATABASE_URL).await.unwrap();
+        .connect(&DATABASE_URL)
+        .await
+        .unwrap();
     pool.size();
     HttpServer::new(move || {
         App::new()
@@ -58,5 +60,5 @@ async fn main() -> std::io::Result<()> {
 pub async fn index(_request: HttpRequest, pool: web::Data<TdfPool>) -> impl Responder {
     let mut cursor = sqlx::query(r#"SELECT * from people"#).fetch(pool.get_ref());
     let row = cursor.next().await.unwrap().unwrap();
-    row.get::<&str, &str>("person_id").to_string()
+    row.get::<i64, &str>("person_id").to_string()
 }
